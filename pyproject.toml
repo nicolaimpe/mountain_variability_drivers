@@ -1,7 +1,7 @@
 [project]
-name = "mountain_variability_drivers"
+name = "mountain_data_binner"
 version = "0.1.0"
-description = "Efficient xarray-based workflow to map distributed (gridded) information into a semi-distributed geometry with landcover classes (main drivers of spatial variability of snow in mountains)"
+description = "Xarray based workflow for geospatial data binning in mountain landscape."
 authors = [
     {name = "Nicola Imperatore", email = "nicola.imperatore@meteo.fr"},
 ]
