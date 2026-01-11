@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Tuple
 
 import numpy as np
 import rasterio
@@ -13,14 +14,29 @@ logging.basicConfig(level=logging.INFO)
 
 
 def slope_map_gdal(input_file: str, output_file: str) -> xr.DataArray:
+    """Wrap-up GDAL command to generate a slope map. See scripts/process_mnt.sh for the GDAL routine."""
     os.system(f"gdaldem slope -alg ZevenbergenThorne {input_file} {output_file}")
 
 
 def aspect_map_gdal(input_file: str, output_file: str) -> xr.DataArray:
+    """Wrap-up GDAL command to generate an aspect map. See scripts/process_mnt.sh for the GDAL routine."""
     os.system(f"gdaldem aspect -alg ZevenbergenThorne {input_file} {output_file}")
 
 
-def preprocess_topography(input_dem_filepath: str, distributed_data_filepath: str, output_folder: str):
+def preprocess_topography(input_dem_filepath: str, distributed_data_filepath: str, output_folder: str) -> Tuple[str, str, str]:
+    """Create auxiliary data for topography based data binning of a spatial dataset using GDAL.
+
+    1. Regrid DEM on the spatial data grid
+    2. Generate slope and aspect map from the regridded DEM
+
+    Args:
+        input_dem_filepath (str): Path to a Digital Elevation Model in any projection covering your area of interest.
+        distributed_data_filepath (str): Path to some geospatial dataset.
+        output_folder (str): path to a folder that stores the regridded DEM, the slope and aspect map.
+
+    Returns:
+        Tuple[str, str, str]: the filepaths to regridded DEM, slope and aspect maps
+    """
     logger.info("Opening distributed dataset in target geometry")
     distributed_data = xr.open_dataset(distributed_data_filepath, engine="rasterio")
     logger.info("Opening DEM data")
@@ -55,7 +71,25 @@ def preprocess_topography(input_dem_filepath: str, distributed_data_filepath: st
     return output_dem_filepath, output_slope_filepath, output_aspect_filepath
 
 
-def preprocess(input_dem_filepath: str, forest_mask_filepath: str, distributed_data_filepath: str, output_folder: str):
+def preprocess(
+    input_dem_filepath: str, forest_mask_filepath: str, distributed_data_filepath: str, output_folder: str
+) -> Tuple[str, str, str, str]:
+    """Create auxiliary data for topography and landcover data binning of a spatial dataset using GDAL.
+
+    1. Use preprocess_topography to generate a regridded DEM on target grid, a slope and an aspect map
+    2. Regrid a forest mask (or any landcover map) to target grid
+
+    The target grid and projections correspond to the geospatial (distributed) dataset used.
+
+    Args:
+        input_dem_filepath (str): path to to a Digital Elevation Model in any projection covering your area of interest
+        forest_mask_filepath (str): path to a forest mask (or any landcover dataset) in any projection covering your area of interest
+        distributed_data_filepath (str): path to some geospatial dataset.
+        output_folder (str): path to a folder that stores the regridded DEM, the slope and aspect map.
+
+    Returns:
+        Tuple[str, str, str, str]: the filepaths to regridded DEM, slope map, aspect map and regridded forest mask (or landcover map)
+    """
     output_dem_filepath, output_slope_filepath, output_aspect_filepath = preprocess_topography(
         input_dem_filepath=input_dem_filepath, distributed_data_filepath=distributed_data_filepath, output_folder=output_folder
     )

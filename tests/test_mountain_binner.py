@@ -145,7 +145,7 @@ def test_mountain_binner_defaults_bins(test_dem_file, test_forest_mask_file, tes
     default_created_bins = MountainBinner.create_default_bin_dict(altitude_step=1, altitude_max=5)
 
     result = semidistributed.transform(
-        distributed_data=distributed_data, analysis_bin_dict=default_created_bins, function=sum_data_array
+        distributed_data=distributed_data, bin_dict=default_created_bins, function=sum_data_array
     )
     # Summit point slope=0, altitude=2 doesn't have a defined aspect (very special case)
     # So we cannot test it here
@@ -164,7 +164,7 @@ def test_mountain_binner_user_bins(
     test_aspect_file_true,
     test_forest_mask_file_true,
 ):
-    semidistributed = MountainBinner(
+    mountain_binner = MountainBinner(
         MountainBinnerConfig(
             slope_map_path=test_slope_file_true,
             dem_path=test_dem_file_regrid_true,
@@ -175,22 +175,22 @@ def test_mountain_binner_user_bins(
     )
     distributed_data = xr.Dataset({"test_data": xr.open_dataarray(test_distributed_data_file)})
     with pytest.raises(MountainBinnerError):
-        user_created_bins = MountainBinner.create_user_bin_dict(
+        user_created_bins = mountain_binner.create_user_bin_dict(
             slope_edges=np.arange(0, 60, 10),
             aspect_edges=np.arange(0, 361, 90),
             altitude_edges=np.arange(-2, 5, 2),  # Altitude of -2
             landcover_classes=[0, 1],
         )
-    user_created_bins = MountainBinner.create_user_bin_dict(
+    user_created_bins = mountain_binner.create_user_bin_dict(
         slope_edges=np.arange(0, 60, 10),
         aspect_edges=np.arange(0, 361, 90),
         altitude_edges=np.arange(0, 5, 2),
         landcover_classes=np.array([1, 0]),
     )
 
-    result = semidistributed.transform(
+    result = mountain_binner.transform(
         distributed_data=distributed_data,
-        analysis_bin_dict=user_created_bins,
+        bin_dict=user_created_bins,
         function=sum_data_array,
     )
     # Summit point slope=0, altitude=2 doesn't have a defined aspect (very special case)

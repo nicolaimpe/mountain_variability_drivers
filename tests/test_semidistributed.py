@@ -119,7 +119,7 @@ def test_semidistributed_defaults_bins(test_dem_file, test_distributed_data_file
     default_created_bins = Semidistributed.create_default_bin_dict(altitude_step=1, altitude_max=5)
 
     result = semidistributed.transform(
-        distributed_data=distributed_data, analysis_bin_dict=default_created_bins, function=sum_data_array
+        distributed_data=distributed_data, bin_dict=default_created_bins, function=sum_data_array
     )
     # Summit point slope=0, altitude=2 doesn't have a defined aspect (very special case)
     # So we cannot test it here
@@ -147,12 +147,12 @@ def test_semidistributed_user_bins(
     )
     distributed_data = xr.Dataset({"test_data": xr.open_dataarray(test_distributed_data_file)})
     with pytest.raises(SemidistributedError):
-        user_created_bins = Semidistributed.create_user_bin_dict(
+        user_created_bins = semidistributed.create_user_bin_dict(
             slope_edges=np.arange(0, 60, 10),
             aspect_edges=np.arange(0, 361, 90),
             altitude_edges=np.arange(-2, 5, 2),  # Altitude of -2
         )
-    user_created_bins = Semidistributed.create_user_bin_dict(
+    user_created_bins = semidistributed.create_user_bin_dict(
         slope_edges=np.arange(0, 60, 10),
         aspect_edges=np.arange(0, 361, 90),
         altitude_edges=np.arange(0, 5, 2),
@@ -160,7 +160,7 @@ def test_semidistributed_user_bins(
 
     result = semidistributed.transform(
         distributed_data=distributed_data,
-        analysis_bin_dict=user_created_bins,
+        bin_dict=user_created_bins,
         function=sum_data_array,
     )
     # Summit point slope=0, altitude=2 doesn't have a defined aspect (very special case)
